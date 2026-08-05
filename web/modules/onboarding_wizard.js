@@ -120,12 +120,17 @@
                 ['MINIMAX_API_KEY', 'minimax'],
                 ['ANTHROPIC_API_KEY', 'anthropic'],
             ].filter(([settingKey]) => configured[settingKey]);
+            // Fork: OpenAI-first. Prefer openai when that key is present.
+            if (configured.OPENAI_API_KEY && !hasCompatible) {
+                if (direct.length > 1) return 'direct-multi';
+                return 'openai';
+            }
             if (hasOpenrouter) return 'openrouter';
             if (hasCompatible) return 'openai-compatible';
             if (direct.length > 1) return 'direct-multi';
             if (direct.length === 1) return direct[0][1];
             if (hasLocalModel()) return 'local';
-            return 'openrouter';
+            return 'openai';
         }
 
     function activeProviderProfile() {
@@ -212,7 +217,7 @@
 
     function applyModelDefaults(force) {
         if (state.modelsDirty && !force) return;
-        const defaults = MODEL_DEFAULTS[activeProviderProfile()] || MODEL_DEFAULTS.openrouter || {};
+            const defaults = MODEL_DEFAULTS[activeProviderProfile()] || MODEL_DEFAULTS.openai || {};
         state.mainModel = defaults.main || '';
         state.heavyModel = defaults.heavy || '';
         state.lightModel = defaults.light || '';

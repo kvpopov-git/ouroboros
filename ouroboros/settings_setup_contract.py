@@ -25,13 +25,14 @@ def _rows(keys: tuple[str, ...], specs: tuple[tuple[Any, ...], ...]) -> list[dic
 
 
 _MODEL_DEFAULTS = {
+    # OpenRouter profile keeps multi-vendor router slugs (optional lane).
     "openrouter": {
-        "main": str(SETTINGS_DEFAULTS["OUROBOROS_MODEL"]),
-        "heavy": str(SETTINGS_DEFAULTS["OUROBOROS_MODEL_HEAVY"]),
-        "light": str(SETTINGS_DEFAULTS["OUROBOROS_MODEL_LIGHT"]),
-        "vision": str(SETTINGS_DEFAULTS["OUROBOROS_MODEL_VISION"]),
-        "consciousness": str(SETTINGS_DEFAULTS["OUROBOROS_MODEL_CONSCIOUSNESS"]),
-        "fallback": str(SETTINGS_DEFAULTS["OUROBOROS_MODEL_FALLBACKS"]),
+        "main": "x-ai/grok-4.5",
+        "heavy": "",
+        "light": "google/gemini-3.6-flash",
+        "vision": "",
+        "consciousness": "",
+        "fallback": "openai/gpt-5.6-luna",
     },
     "openai": dict(OPENAI_DIRECT_DEFAULTS),
     "cloudru": dict(CLOUDRU_DIRECT_DEFAULTS),
@@ -140,7 +141,7 @@ _LOCAL_PRESETS: Dict[str, Dict[str, Any]] = {
     "qwen3-32b": {"label": "Qwen3-32B Instruct Q4_K_M", "source": "Qwen/Qwen3-32B-GGUF", "filename": "Qwen3-32B-Q4_K_M.gguf", "contextLength": 32768, "chatFormat": ""},
 }
 
-_MODEL_SUGGESTIONS = list(dict.fromkeys(("x-ai/grok-4.5", "google/gemini-3.6-flash", "openai/gpt-5.6-terra", "openai/gpt-5.6-sol", "openai/gpt-5.6-luna", "openai::gpt-5.6-terra", "openai::gpt-5.6-sol", "openai::gpt-5.6-luna", "anthropic/claude-sonnet-5", "anthropic/claude-opus-5", "anthropic::claude-sonnet-5", "anthropic::claude-opus-5", "anthropic::claude-opus-4-6", "deepseek/deepseek-v4-pro", "openai-compatible::meta-llama/compatible", "cloudru::zai-org/GLM-4.7", "minimax::MiniMax-M3", "minimax::MiniMax-M2.7")))
+_MODEL_SUGGESTIONS = list(dict.fromkeys(("openai::gpt-5.6-terra", "openai::gpt-5.6-sol", "openai::gpt-5.6-luna", "openai/gpt-5.6-terra", "openai/gpt-5.6-sol", "openai/gpt-5.6-luna", "x-ai/grok-4.5", "google/gemini-3.6-flash", "anthropic/claude-sonnet-5", "anthropic/claude-opus-5", "anthropic::claude-sonnet-5", "anthropic::claude-opus-5", "anthropic::claude-opus-4-6", "deepseek/deepseek-v4-pro", "openai-compatible::meta-llama/compatible", "cloudru::zai-org/GLM-4.7", "minimax::MiniMax-M3", "minimax::MiniMax-M2.7")))
 
 
 def _string(value: Any) -> str:
@@ -182,6 +183,20 @@ def parse_budget_setting(
 
 def derive_provider_profile(settings: dict) -> str:
     flags = {field["settingKey"]: bool(_string(settings.get(field["settingKey"]))) for field in _PROVIDER_FIELDS}
+    # Fork preference: OpenAI-direct wins over OpenRouter when both keys exist.
+    if flags["OPENAI_API_KEY"] and not flags["OPENAI_COMPATIBLE_BASE_URL"]:
+        other_direct = [
+            flags["CLOUDRU_FOUNDATION_MODELS_API_KEY"],
+            flags["MINIMAX_API_KEY"],
+            flags["ANTHROPIC_API_KEY"],
+        ]
+        if flags["OPENROUTER_API_KEY"] or any(other_direct):
+            # Still OpenAI-primary when only OpenAI+OpenRouter, or label multi when
+            # several direct vendors are configured together.
+            if any(other_direct):
+                return "direct-multi"
+            return "openai"
+        return "openai"
     if flags["OPENROUTER_API_KEY"]:
         return "openrouter"
     if flags["OPENAI_COMPATIBLE_BASE_URL"]:
@@ -195,7 +210,7 @@ def derive_provider_profile(settings: dict) -> str:
     configured = [name for key, name in direct if flags[key]]
     if len(configured) > 1:
         return "direct-multi"
-    return configured[0] if configured else ("local" if _string(settings.get("LOCAL_MODEL_SOURCE")) else "openrouter")
+    return configured[0] if configured else ("local" if _string(settings.get("LOCAL_MODEL_SOURCE")) else "openai")
 
 
 def derive_local_routing_mode(settings: dict) -> str:

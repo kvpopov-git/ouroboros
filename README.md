@@ -1,5 +1,10 @@
 # Ouroboros
 
+> **Fork note:** this tree is [kvpopov-git/ouroboros](https://github.com/kvpopov-git/ouroboros),
+> adapted from [razzant/ouroboros](https://github.com/razzant/ouroboros).
+> Defaults are **OpenAI-direct first**; other providers stay available.
+> See [FORK.md](FORK.md) for Windows setup and desktop tools.
+
 [![GitHub stars](https://img.shields.io/github/stars/razzant/ouroboros?style=flat&logo=github)](https://github.com/razzant/ouroboros/stargazers)
 [![Downloads](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Frazzant%2Fouroboros%2Fbadges%2Fdownloads.json)](https://github.com/razzant/ouroboros/releases)
 [![Website](https://img.shields.io/badge/website-ouroboros--agent.ai-c93545.svg)](https://ouroboros-agent.ai/)
@@ -111,7 +116,7 @@ Benchmark adapters, run scripts, and per-benchmark methodology live in [`devtool
 ### Setup
 
 ```bash
-git clone https://github.com/razzant/ouroboros.git
+git clone https://github.com/kvpopov-git/ouroboros.git
 cd ouroboros
 python3.11 -m venv .venv      # any Python >= 3.10 is OK
 source .venv/bin/activate
@@ -130,6 +135,7 @@ python -m pip install -r requirements.txt
 python -m pip install -e . --no-deps
 ```
 
+Then open `http://127.0.0.1:8765` after `ouroboros server`. On this fork, the setup wizard expects an **OpenAI API key** first; other providers are optional. See [FORK.md](FORK.md).
 ### Run
 
 ```bash

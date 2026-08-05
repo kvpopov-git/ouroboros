@@ -83,13 +83,16 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     "OUROBOROS_NETWORK_PASSWORD": "",
     "OUROBOROS_SERVER_HOST": "127.0.0.1",
     "OUROBOROS_HOST_SERVICE_PORT": 8767,
-    "OUROBOROS_MODEL": "x-ai/grok-4.5",
+    # Fork default (kvpopov-git): OpenAI-direct first. Other providers stay fully
+    # supported — set their keys and/or switch model ids (openai:: / anthropic:: /
+    # openrouter slugs / openai-compatible::). Prefix routes to the matching lane.
+    "OUROBOROS_MODEL": "openai::gpt-5.6-terra",
     # Worker lanes. Empty means "use OUROBOROS_MODEL" (same shape as consciousness),
     # so the owner sets ONE model by default and optionally overrides a lane. HEAVY is
     # the strong acting/coding lane (mutative first-level subagents); LIGHT is the cheap
     # bulk lane (auto / deep subagents); real cheap default since v6.82.0.
-    "OUROBOROS_MODEL_HEAVY": "",
-    "OUROBOROS_MODEL_LIGHT": "google/gemini-3.6-flash",
+    "OUROBOROS_MODEL_HEAVY": "openai::gpt-5.6-sol",
+    "OUROBOROS_MODEL_LIGHT": "openai::gpt-5.6-luna",
     "OUROBOROS_MODEL_VISION": "",
     "OUROBOROS_IMAGE_INPUT_MODE": "auto",
     # Background consciousness is a high-horizon cognitive loop, not a cheap
@@ -98,8 +101,8 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     # Cross-model resilience CHAIN (comma-separated, ordered). A single model is a
     # 1-element chain; empty disables cross-model fallback. Resilience slot — keeps a
     # real default, unlike the worker lanes. (Renamed from the singular MODEL_FALLBACK.)
-    "OUROBOROS_MODEL_FALLBACKS": "openai/gpt-5.6-luna",
-    "OUROBOROS_MODEL_DEEP_SELF_REVIEW": "openai/gpt-5.6-sol-pro",
+    "OUROBOROS_MODEL_FALLBACKS": "openai::gpt-5.6-luna",
+    "OUROBOROS_MODEL_DEEP_SELF_REVIEW": "openai::gpt-5.6-sol",
     "CLAUDE_CODE_MODEL": "opus[1m]",
     "OUROBOROS_MAX_WORKERS": 10,
     "OUROBOROS_MAX_ACTIVE_SUBAGENTS_PER_ROOT": 6,
@@ -201,8 +204,10 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     # window from a FREE over-window reject; *_CHARS sizes the oversized padding.
     "OUROBOROS_GENERATIVE_PROBE": "1",
     "OUROBOROS_GENERATIVE_PROBE_CHARS": "5000000",
-    # Pre-commit review: comma-separated provider-tagged model list
-    "OUROBOROS_REVIEW_MODELS": "openai/gpt-5.6-luna,google/gemini-3.6-flash,anthropic/claude-sonnet-5",
+    # Pre-commit review: comma-separated provider-tagged model list.
+    # OpenAI-only triad (stochastic diversity) for direct-OpenAI-first installs;
+    # owners can replace with a multi-vendor list when OpenRouter/Anthropic/etc. are configured.
+    "OUROBOROS_REVIEW_MODELS": "openai::gpt-5.6-luna,openai::gpt-5.6-terra,openai::gpt-5.6-sol",
     # Pre-commit review enforcement: advisory | blocking
     "OUROBOROS_REVIEW_ENFORCEMENT": "advisory",
     # Auto-grant reviewed-skill requests by default; grants stay bound to the
@@ -239,8 +244,8 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     "MCP_SERVERS": [],
     "MCP_TOOL_TIMEOUT_SEC": 60,
     # Scope review: one or more reviewer slots; enforcement follows OUROBOROS_REVIEW_ENFORCEMENT.
-    "OUROBOROS_SCOPE_REVIEW_MODELS": "openai/gpt-5.6-terra",
-    "OUROBOROS_SCOPE_REVIEW_MODEL": "openai/gpt-5.6-terra",
+    "OUROBOROS_SCOPE_REVIEW_MODELS": "openai::gpt-5.6-terra",
+    "OUROBOROS_SCOPE_REVIEW_MODEL": "openai::gpt-5.6-terra",
     # DEPRECATED, enforcement-inert (v6.80.0): stored, owner-only (dedicated audited
     # endpoint), but NOTHING consults it — whether the BIBLE P3 blocking scope review
     # applies follows owner-only OUROBOROS_CONTEXT_MODE. Degraded opt-in key: removed.

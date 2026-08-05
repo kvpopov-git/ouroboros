@@ -268,14 +268,14 @@ function collectSecretValue(id, body) {
 
 // Fallback picker pills mirror config defaults plus useful direct-provider ids.
 const SETTINGS_FALLBACK_MODELS = [
-    'x-ai/grok-4.5',
-    'google/gemini-3.6-flash',
-    'openai/gpt-5.6-terra',
-    'openai/gpt-5.6-sol',
-    'openai/gpt-5.6-luna',
     'openai::gpt-5.6-terra',
     'openai::gpt-5.6-sol',
     'openai::gpt-5.6-luna',
+    'openai/gpt-5.6-terra',
+    'openai/gpt-5.6-sol',
+    'openai/gpt-5.6-luna',
+    'x-ai/grok-4.5',
+    'google/gemini-3.6-flash',
     'anthropic/claude-sonnet-5',
     'anthropic/claude-opus-5',
     'anthropic::claude-sonnet-5',

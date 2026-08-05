@@ -66,9 +66,10 @@ ouroboros = "ouroboros.cli:main"
 ouroboros-web = "server:main"
 
 [project.urls]
-Homepage = "https://github.com/razzant/ouroboros"
-Repository = "https://github.com/razzant/ouroboros"
-Issues = "https://github.com/razzant/ouroboros/issues"
+Homepage = "https://github.com/kvpopov-git/ouroboros"
+Repository = "https://github.com/kvpopov-git/ouroboros"
+Issues = "https://github.com/kvpopov-git/ouroboros/issues"
+Upstream = "https://github.com/razzant/ouroboros"
 "Previous Version (Colab)" = "https://github.com/razzant/ouroboros/tree/legacy-google-colab"
 
 [project.optional-dependencies]

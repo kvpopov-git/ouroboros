@@ -456,7 +456,7 @@ def verify_claude_runtime(context: BootstrapContext) -> bool:
 
 
 _SEED_COMPLETE_MARKER = ".bootstrap-seed-complete"
-_POST_BOOTSTRAP_NEW_NATIVE_SEEDS = frozenset({"telegram", "unix_computer_use"})
+_POST_BOOTSTRAP_NEW_NATIVE_SEEDS = frozenset({"telegram", "unix_computer_use", "windows_computer_use"})
 
 
 def _read_skill_manifest_version(skill_dir: pathlib.Path) -> str:

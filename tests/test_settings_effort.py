@@ -144,7 +144,9 @@ def test_get_review_models_default(monkeypatch):
     models = get_review_models()
     assert isinstance(models, list)
     assert len(models) >= 2
-    assert all("/" in m for m in models)  # valid OpenRouter model IDs
+    # Fork ships OpenAI-direct reviewer ids (`openai::…`); slash-form OpenRouter
+    # ids remain valid when an owner configures them.
+    assert all(("::" in m or "/" in m) for m in models)
 
 
 def test_get_review_models_custom(monkeypatch):

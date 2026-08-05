@@ -33,7 +33,7 @@ from ouroboros.utils import in_worker_process
 
 log = logging.getLogger(__name__)
 
-DEFAULT_LIGHT_MODEL = "google/gemini-3.6-flash"
+DEFAULT_LIGHT_MODEL = "openai::gpt-5.6-luna"
 _FALSE_LIKE_ENV_VALUES = {"", "0", "false", "no", "off"}
 # Provider-valid cache_control TTL values (Anthropic ephemeral cache tiers,
 # passed through by OpenRouter). Anything else is normalized to the bare marker.
@@ -4117,11 +4117,11 @@ class LLMClient:
 
     def default_model(self) -> str:
         """Return the single default model from env. LLM switches via tool if needed."""
-        return os.environ.get("OUROBOROS_MODEL", "x-ai/grok-4.5")
+        return os.environ.get("OUROBOROS_MODEL", "openai::gpt-5.6-terra")
 
     def available_models(self) -> List[str]:
         """Return list of available models from env (for switch_model tool schema)."""
-        main = os.environ.get("OUROBOROS_MODEL", "x-ai/grok-4.5")
+        main = os.environ.get("OUROBOROS_MODEL", "openai::gpt-5.6-terra")
         heavy = os.environ.get("OUROBOROS_MODEL_HEAVY", "")
         light = os.environ.get("OUROBOROS_MODEL_LIGHT", "")
         models = [main]

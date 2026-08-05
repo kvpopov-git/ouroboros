@@ -12,12 +12,12 @@ const SETTINGS_TABS = [
 // Guard markers: renderTabStrip emits behavior/advanced tabs at runtime.
 
 const MODEL_CARDS = [
-    ['Main', 'Primary reasoning model.', 's-model', 's-local-main', 'x-ai/grok-4.5'],
-    ['Heavy', 'Strong acting/coding lane for mutative first-level subagents. Empty uses Main.', 's-model-heavy', 's-local-heavy', ''],
-    ['Light', 'Fast summaries, lightweight tasks, and all deep subagents. Empty uses Main.', 's-model-light', 's-local-light', 'google/gemini-3.6-flash'],
+    ['Main', 'Primary reasoning model.', 's-model', 's-local-main', 'openai::gpt-5.6-terra'],
+    ['Heavy', 'Strong acting/coding lane for mutative first-level subagents. Empty uses Main.', 's-model-heavy', 's-local-heavy', 'openai::gpt-5.6-sol'],
+    ['Light', 'Fast summaries, lightweight tasks, and all deep subagents. Empty uses Main.', 's-model-light', 's-local-light', 'openai::gpt-5.6-luna'],
     ['Vision', 'Caption and VLM lane. Empty uses Main.', 's-model-vision', '', ''],
     ['Consciousness', 'High-horizon background consciousness. Empty uses Main.', 's-model-consciousness', 's-local-consciousness', ''],
-    ['Fallback', 'Resilience and degraded path (comma-separated chain).', 's-model-fallback', 's-local-fallback', 'openai/gpt-5.6-luna'],
+    ['Fallback', 'Resilience and degraded path (comma-separated chain).', 's-model-fallback', 's-local-fallback', 'openai::gpt-5.6-luna'],
 ];
 
 const EFFORT_FIELDS = [
@@ -65,13 +65,13 @@ function plainField({ id, label, placeholder }) {
 
 const PROVIDER_CARDS = [
     {
-        id: 'openrouter', title: 'OpenRouter', icon: '/static/providers/openrouter.ico', hint: 'Default multi-model router', open: true,
-        fields: [{ id: 's-openrouter', settingKey: 'OPENROUTER_API_KEY', label: 'OpenRouter API Key', placeholder: 'sk-or-...' }],
+        id: 'openai', title: 'OpenAI', icon: '/static/providers/openai.svg', hint: 'Default for this fork — official OpenAI API', open: true,
+        fields: [{ id: 's-openai', settingKey: 'OPENAI_API_KEY', label: 'OpenAI API Key', placeholder: 'sk-...' }],
+        note: 'Shipped model defaults use <code>openai::…</code> direct routing. Add other providers below when you want multi-vendor review or OpenRouter slugs.',
     },
     {
-        id: 'openai', title: 'OpenAI', icon: '/static/providers/openai.svg', hint: 'Official OpenAI API',
-        fields: [{ id: 's-openai', settingKey: 'OPENAI_API_KEY', label: 'OpenAI API Key', placeholder: 'sk-...' }],
-        note: 'Use model values like <code>openai::gpt-5.6-terra</code> in the Models tab to route models directly here. If OpenRouter is absent and the shipped defaults are still untouched, Ouroboros auto-remaps them to official OpenAI defaults.',
+        id: 'openrouter', title: 'OpenRouter', icon: '/static/providers/openrouter.ico', hint: 'Multi-model router (optional)',
+        fields: [{ id: 's-openrouter', settingKey: 'OPENROUTER_API_KEY', label: 'OpenRouter API Key', placeholder: 'sk-or-...' }],
     },
     {
         id: 'compatible', title: 'OpenAI Compatible', icon: '/static/providers/openai-compatible.svg', hint: 'Custom OpenAI-style endpoint',

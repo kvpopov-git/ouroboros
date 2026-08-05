@@ -40,12 +40,12 @@ def test_settings_defaults_include_phase2_keys():
 
     assert SETTINGS_DEFAULTS["OUROBOROS_RUNTIME_MODE"] == "advanced"
     assert SETTINGS_DEFAULTS["OUROBOROS_SKILLS_REPO_PATH"] == ""
-    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL"] == "x-ai/grok-4.5"
+    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL"] == "openai::gpt-5.6-terra"
     # Heavy default EMPTY -> fall back to Main (role-model, v6.39). Since v6.82.0 the
     # Light lane and the resilience Fallbacks chain carry real cheap defaults.
-    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_HEAVY"] == ""
-    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_LIGHT"] == "google/gemini-3.6-flash"
-    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_FALLBACKS"] == "openai/gpt-5.6-luna"
+    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_HEAVY"] == "openai::gpt-5.6-sol"
+    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_LIGHT"] == "openai::gpt-5.6-luna"
+    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_FALLBACKS"] == "openai::gpt-5.6-luna"
 
 
 def test_valid_runtime_modes_is_frozen_tuple():
