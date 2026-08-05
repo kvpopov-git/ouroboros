@@ -51,8 +51,8 @@ def test_apply_runtime_provider_defaults_autofills_official_openai_models():
         "OUROBOROS_SCOPE_REVIEW_MODEL",
         "OUROBOROS_SCOPE_REVIEW_MODELS",
     }
-    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-terra"
-    assert normalized["OUROBOROS_MODEL_HEAVY"] == "openai::gpt-5.6-sol"
+    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-luna"
+    assert normalized["OUROBOROS_MODEL_HEAVY"] == ""
     assert normalized["OUROBOROS_MODEL_LIGHT"] == "openai::gpt-5.6-luna"
     assert normalized["OUROBOROS_MODEL_FALLBACKS"] == "openai::gpt-5.6-luna"
 
@@ -69,18 +69,19 @@ def test_apply_runtime_provider_defaults_autofills_official_openai_models():
 
     assert changed
     assert "OUROBOROS_MODEL" in changed_keys
-    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-terra"
-    assert normalized["OUROBOROS_MODEL_HEAVY"] == "openai::gpt-5.6-sol"
+    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-luna"
+    assert normalized["OUROBOROS_MODEL_HEAVY"] == ""
     assert normalized["OUROBOROS_MODEL_LIGHT"] == "openai::gpt-5.6-luna"
     assert normalized["OUROBOROS_REVIEW_MODELS"] == (
-        "openai::gpt-5.6-terra,openai::gpt-5.6-luna,openai::gpt-5.6-luna"
+        "openai::gpt-5.6-luna,openai::gpt-5.6-luna,openai::gpt-5.6-luna"
     )
     # v4.39.0: direct-provider fallback now seeds `[main, light, light]` —
     # 3 commit-triad slots (preserving the documented 3-reviewer contract)
     # with 2 unique models (so `plan_task`'s quorum gate passes). Replaces
     # the old `[main] * 3` fallback that broke `plan_task` first-run.
-    assert normalized["OUROBOROS_SCOPE_REVIEW_MODEL"] == "openai::gpt-5.6-terra"
-    assert normalized["OUROBOROS_SCOPE_REVIEW_MODELS"] == "openai::gpt-5.6-terra"
+    # Budget fork: light == main (luna), so the fallback is three identical luna slots.
+    assert normalized["OUROBOROS_SCOPE_REVIEW_MODEL"] == "openai::gpt-5.6-luna"
+    assert normalized["OUROBOROS_SCOPE_REVIEW_MODELS"] == "openai::gpt-5.6-luna"
 
     # Fork OpenAI-first: SETTINGS_DEFAULTS already ship openai:: ids, so an
     # OpenAI-only install with untouched defaults needs no runtime remap.
@@ -90,13 +91,11 @@ def test_apply_runtime_provider_defaults_autofills_official_openai_models():
 
     assert not changed
     assert changed_keys == []
-    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-terra"
-    assert normalized["OUROBOROS_MODEL_HEAVY"] == "openai::gpt-5.6-sol"
+    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-luna"
+    assert normalized["OUROBOROS_MODEL_HEAVY"] == ""
     assert normalized["OUROBOROS_MODEL_LIGHT"] == "openai::gpt-5.6-luna"
     assert normalized["OUROBOROS_MODEL_FALLBACKS"] == "openai::gpt-5.6-luna"
-    assert normalized["OUROBOROS_REVIEW_MODELS"] == (
-        "openai::gpt-5.6-luna,openai::gpt-5.6-terra,openai::gpt-5.6-sol"
-    )
+    assert normalized["OUROBOROS_REVIEW_MODELS"] == "openai::gpt-5.6-luna"
 
 
 def test_apply_runtime_provider_defaults_migrates_saved_openai_values():
@@ -125,8 +124,8 @@ def test_apply_runtime_provider_defaults_migrates_saved_openai_values():
     # v6.82.0: stored copies of the OLD shipped OpenAI defaults (gpt-5.5 main/heavy,
     # gpt-4.1 / gpt-5.4-mini light+fallback) are legacy defaults, not explicit
     # choices — they migrate to the new gpt-5.6 slot defaults.
-    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-terra"
-    assert normalized["OUROBOROS_MODEL_HEAVY"] == "openai::gpt-5.6-sol"
+    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-luna"
+    assert normalized["OUROBOROS_MODEL_HEAVY"] == ""
     assert normalized["OUROBOROS_MODEL_LIGHT"] == "openai::gpt-5.6-luna"
     assert normalized["OUROBOROS_MODEL_FALLBACKS"] == "openai::gpt-5.6-luna"
     # v6.36.0 (D4): an explicit provider-matching review list is honored EXACTLY
@@ -342,14 +341,12 @@ def test_apply_runtime_provider_defaults_keeps_new_triad_on_openrouter():
 
     assert not changed
     assert changed_keys == []
-    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-terra"
+    assert normalized["OUROBOROS_MODEL"] == "openai::gpt-5.6-luna"
     assert normalized["OUROBOROS_MODEL_LIGHT"] == "openai::gpt-5.6-luna"
     assert normalized["OUROBOROS_MODEL_FALLBACKS"] == "openai::gpt-5.6-luna"
-    assert normalized["OUROBOROS_REVIEW_MODELS"] == (
-        "openai::gpt-5.6-luna,openai::gpt-5.6-terra,openai::gpt-5.6-sol"
-    )
-    assert normalized["OUROBOROS_SCOPE_REVIEW_MODEL"] == "openai::gpt-5.6-terra"
-    assert normalized["OUROBOROS_SCOPE_REVIEW_MODELS"] == "openai::gpt-5.6-terra"
+    assert normalized["OUROBOROS_REVIEW_MODELS"] == "openai::gpt-5.6-luna"
+    assert normalized["OUROBOROS_SCOPE_REVIEW_MODEL"] == "openai::gpt-5.6-luna"
+    assert normalized["OUROBOROS_SCOPE_REVIEW_MODELS"] == "openai::gpt-5.6-luna"
 
 
 def test_apply_runtime_provider_defaults_preserves_saved_outgoing_triad_on_openrouter():

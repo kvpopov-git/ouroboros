@@ -2,8 +2,8 @@
 
 > **Fork note:** this tree is [kvpopov-git/ouroboros](https://github.com/kvpopov-git/ouroboros),
 > adapted from [razzant/ouroboros](https://github.com/razzant/ouroboros).
-> Defaults are **OpenAI-direct first**; other providers stay available.
-> See [FORK.md](FORK.md) for Windows setup and desktop tools.
+> Defaults are **OpenAI-direct + Budget** (luna / light runtime / low context);
+> choose **Performance** in onboarding when you want terra/sol. See [FORK.md](FORK.md).
 
 [![GitHub stars](https://img.shields.io/github/stars/razzant/ouroboros?style=flat&logo=github)](https://github.com/razzant/ouroboros/stargazers)
 [![Downloads](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Frazzant%2Fouroboros%2Fbadges%2Fdownloads.json)](https://github.com/razzant/ouroboros/releases)

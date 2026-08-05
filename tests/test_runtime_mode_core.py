@@ -38,12 +38,11 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 def test_settings_defaults_include_phase2_keys():
     from ouroboros.config import SETTINGS_DEFAULTS
 
-    assert SETTINGS_DEFAULTS["OUROBOROS_RUNTIME_MODE"] == "advanced"
+    assert SETTINGS_DEFAULTS["OUROBOROS_RUNTIME_MODE"] == "light"
     assert SETTINGS_DEFAULTS["OUROBOROS_SKILLS_REPO_PATH"] == ""
-    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL"] == "openai::gpt-5.6-terra"
-    # Heavy default EMPTY -> fall back to Main (role-model, v6.39). Since v6.82.0 the
-    # Light lane and the resilience Fallbacks chain carry real cheap defaults.
-    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_HEAVY"] == "openai::gpt-5.6-sol"
+    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL"] == "openai::gpt-5.6-luna"
+    # Fork Budget: Heavy empty → Main; Light/Fallbacks stay on cheap luna.
+    assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_HEAVY"] == ""
     assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_LIGHT"] == "openai::gpt-5.6-luna"
     assert SETTINGS_DEFAULTS["OUROBOROS_MODEL_FALLBACKS"] == "openai::gpt-5.6-luna"
 
@@ -198,7 +197,7 @@ def test_prepare_onboarding_settings_defaults_runtime_mode_when_missing():
     payload = _onboarding_payload_with_runtime(mode=None)
     prepared, error = prepare_onboarding_settings(payload, {})
     assert error is None, error
-    assert prepared["OUROBOROS_RUNTIME_MODE"] == "advanced"
+    assert prepared["OUROBOROS_RUNTIME_MODE"] == "light"
     assert prepared["OUROBOROS_SKILLS_REPO_PATH"] == ""
 
 
@@ -305,8 +304,8 @@ def test_settings_js_reads_and_writes_phase2_keys():
     assert "OUROBOROS_RUNTIME_MODE" in src
     assert "OUROBOROS_CONTEXT_MODE_DRAFT" in src
     assert "OUROBOROS_SKILLS_REPO_PATH" in src
-    assert "['s-runtime-mode', 'OUROBOROS_RUNTIME_MODE', 'advanced']" in src
-    assert "['s-context-mode', 'OUROBOROS_CONTEXT_MODE', 'max']" in src
+    assert "['s-runtime-mode', 'OUROBOROS_RUNTIME_MODE', 'light']" in src
+    assert "['s-context-mode', 'OUROBOROS_CONTEXT_MODE', 'low']" in src
     assert "['s-skills-repo-path', 'OUROBOROS_SKILLS_REPO_PATH']" in src
     assert "fieldValue(id).trim()" in src
 

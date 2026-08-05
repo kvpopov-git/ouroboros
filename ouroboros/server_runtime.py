@@ -308,13 +308,15 @@ def _normalize_direct_scope_review_model(settings: dict, provider: str) -> str:
     default = migrate_model_value(provider, default_raw) if default_raw else ""
     provider_prefix = _provider_prefix(provider)
     if provider == "openai":
-        # Keep the OpenAI-only branch explicit even though the shipped scope-review
-        # default is an OpenAI model again (openai/gpt-5.6-terra as of v6.82.0; it was
-        # cross-provider fable-5 in v6.55.0-v6.81 and this branch kept the slot
-        # callable then). Pinning the designated OpenAI scope reviewer here keeps the
-        # slot on the terra reviewer (1M-window designated default) rather than on
-        # whatever main model the install migrated to.
-        auto_value = migrate_model_value(provider, "openai/gpt-5.6-terra")
+        # Follow the shipped/direct OpenAI scope slot (fork Budget → luna). Do not
+        # hardcode terra: that silently upgrades frugal installs to a 1M reviewer.
+        from ouroboros.provider_models import OPENAI_DIRECT_DEFAULTS
+        preferred = str(
+            _setting_text(SETTINGS_DEFAULTS, "OUROBOROS_SCOPE_REVIEW_MODEL")
+            or OPENAI_DIRECT_DEFAULTS.get("main")
+            or "openai::gpt-5.6-luna"
+        ).strip()
+        auto_value = migrate_model_value(provider, preferred)
     else:
         auto_value = migrate_model_value(
             provider,

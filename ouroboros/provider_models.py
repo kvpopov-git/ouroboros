@@ -259,26 +259,21 @@ def provider_credential_plan(settings: dict) -> dict:
 
 
 OPENAI_DIRECT_DEFAULTS = {
+    # Fork Budget profile: cheap OpenAI-direct lane by default. Performance
+    # terra/sol slots live in OPENAI_PERFORMANCE_DEFAULTS for the wizard preset.
+    "main": "openai::gpt-5.6-luna",
+    "heavy": "",
+    "light": "openai::gpt-5.6-luna",
+    "fallback": "openai::gpt-5.6-luna",
+    "deep_self_review": "openai::gpt-5.6-luna",
+}
+
+# Optional high-spend OpenAI lane (wizard "Performance" spend profile).
+OPENAI_PERFORMANCE_DEFAULTS = {
     "main": "openai::gpt-5.6-terra",
     "heavy": "openai::gpt-5.6-sol",
     "light": "openai::gpt-5.6-luna",
     "fallback": "openai::gpt-5.6-luna",
-    # Deep self-review is a real slot with a SHIPPED default; without a
-    # per-provider value a direct-only install keeps an unreachable
-    # OpenRouter-form id it has no credential for (v6.82.0). Only providers whose
-    # model genuinely carries the >=1M window this review sizes against get one —
-    # Cloud.ru and GigaChat are documented BELOW that floor, so filling their slot
-    # would advertise a deep review that is doomed to overflow its real route.
-    #
-    # DELIBERATELY plain Sol, NOT the OpenRouter default's `-pro`: that suffix is an
-    # OpenRouter slug, not an OpenAI model id. Live-probed 2026-07-29 against
-    # api.openai.com: `gpt-5.6-sol-pro` on /v1/chat/completions -> 404; the pro
-    # reasoning mode exists only on /v1/responses as `reasoning.mode="pro"` (200),
-    # and passing `reasoning` to /v1/chat/completions -> 400 "Unknown parameter".
-    # Every LLM call in llm.py is a chat.completions call, so a direct-OpenAI
-    # install runs deep review on plain Sol — an owner-accepted capability
-    # difference from the OpenRouter default, disclosed in README/ARCHITECTURE
-    # rather than papered over with a slug that does not exist.
     "deep_self_review": "openai::gpt-5.6-sol",
 }
 

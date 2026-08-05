@@ -93,7 +93,7 @@ def test_review_enforcement_default_in_config():
 
 
 def test_scope_review_and_task_review_defaults_in_config():
-    assert SETTINGS_DEFAULTS.get("OUROBOROS_SCOPE_REVIEW_MODELS") == "openai/gpt-5.6-terra"
+    assert SETTINGS_DEFAULTS.get("OUROBOROS_SCOPE_REVIEW_MODELS") == "openai::gpt-5.6-luna"
     assert SETTINGS_DEFAULTS.get("OUROBOROS_TASK_REVIEW_MODE") == "auto"
 
 
@@ -143,9 +143,8 @@ def test_get_review_models_default(monkeypatch):
     monkeypatch.delenv("OUROBOROS_MODEL", raising=False)
     models = get_review_models()
     assert isinstance(models, list)
-    assert len(models) >= 2
-    # Fork ships OpenAI-direct reviewer ids (`openai::…`); slash-form OpenRouter
-    # ids remain valid when an owner configures them.
+    # Fork Budget ships a single luna reviewer; Performance can restore a triad.
+    assert len(models) >= 1
     assert all(("::" in m or "/" in m) for m in models)
 
 
@@ -376,20 +375,20 @@ def test_get_task_review_mode_clamps_invalid(monkeypatch):
 
 
 def test_context_mode_default_in_config():
-    """OUROBOROS_CONTEXT_MODE defaults to max (today's behavior)."""
-    assert SETTINGS_DEFAULTS.get("OUROBOROS_CONTEXT_MODE") == "max"
+    """OUROBOROS_CONTEXT_MODE defaults to low (fork Budget profile)."""
+    assert SETTINGS_DEFAULTS.get("OUROBOROS_CONTEXT_MODE") == "low"
 
 
 def test_get_context_mode_clamps_invalid(monkeypatch):
     """get_context_mode() clamps to the closed low/max enum (default max)."""
     monkeypatch.delenv("OUROBOROS_CONTEXT_MODE", raising=False)
-    assert get_context_mode() == "max"
+    assert get_context_mode() == "low"
     monkeypatch.setenv("OUROBOROS_CONTEXT_MODE", "low")
     assert get_context_mode() == "low"
     monkeypatch.setenv("OUROBOROS_CONTEXT_MODE", "MAX")
     assert get_context_mode() == "max"
     monkeypatch.setenv("OUROBOROS_CONTEXT_MODE", "ultra")
-    assert get_context_mode() == "max"
+    assert get_context_mode() == "low"
 
 
 def test_apply_settings_to_env_includes_context_mode(monkeypatch, tmp_path):

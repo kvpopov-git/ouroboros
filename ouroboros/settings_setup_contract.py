@@ -5,13 +5,14 @@ from __future__ import annotations
 import math
 from typing import Any, Dict, Tuple
 
-from ouroboros.config import SETTINGS_DEFAULTS, VALID_RUNTIME_MODES
+from ouroboros.config import SETTINGS_DEFAULTS, VALID_CONTEXT_MODES, VALID_RUNTIME_MODES
 from ouroboros.provider_models import (
     ANTHROPIC_DIRECT_DEFAULTS,
     CLOUDRU_DIRECT_DEFAULTS,
     MINIMAX_DIRECT_DEFAULTS,
     MINIMAX_REGION_ENDPOINTS,
     OPENAI_DIRECT_DEFAULTS,
+    OPENAI_PERFORMANCE_DEFAULTS,
 )
 
 
@@ -35,6 +36,7 @@ _MODEL_DEFAULTS = {
         "fallback": "openai/gpt-5.6-luna",
     },
     "openai": dict(OPENAI_DIRECT_DEFAULTS),
+    "openai_performance": dict(OPENAI_PERFORMANCE_DEFAULTS),
     "cloudru": dict(CLOUDRU_DIRECT_DEFAULTS),
     "minimax": dict(MINIMAX_DIRECT_DEFAULTS),
     "anthropic": dict(ANTHROPIC_DIRECT_DEFAULTS),
@@ -135,13 +137,57 @@ _BUDGET_FIELDS = [
 _BUDGET_FIELDS_BY_KEY = {field["settingKey"]: field for field in _BUDGET_FIELDS}
 BUDGET_SETTING_KEYS = tuple(_BUDGET_FIELDS_BY_KEY)
 
+# Fork spend presets: Budget is the shipped default; Performance restores
+# high-quality OpenAI slots + larger context/review spend.
+_SPEND_PROFILES: Dict[str, Dict[str, Any]] = {
+    "budget": {
+        "label": "Budget",
+        "tone": "Frugal",
+        "copy": "Luna-only OpenAI lane, light runtime, low context, soft $3/task cap. Best for everyday work within a personal API budget.",
+        "className": "advisory",
+        "models": dict(OPENAI_DIRECT_DEFAULTS),
+        "runtimeMode": "light",
+        "contextMode": "low",
+        "reviewEnforcement": "advisory",
+        "reviewModels": "openai::gpt-5.6-luna",
+        "scopeReviewModels": "openai::gpt-5.6-luna",
+        "taskReviewMode": "off",
+        "totalBudget": 10.0,
+        "perTaskCostUsd": 3.0,
+        "maxRounds": 50,
+        "maxWorkers": 3,
+        "maxActiveSubagents": 2,
+        "effortTask": "low",
+    },
+    "performance": {
+        "label": "Performance",
+        "tone": "Quality",
+        "copy": "Terra/Sol/Luna lanes, advanced runtime, max context, triad review. Use when quality matters more than spend.",
+        "className": "blocking",
+        "models": dict(OPENAI_PERFORMANCE_DEFAULTS),
+        "runtimeMode": "advanced",
+        "contextMode": "max",
+        "reviewEnforcement": "advisory",
+        "reviewModels": "openai::gpt-5.6-luna,openai::gpt-5.6-terra,openai::gpt-5.6-sol",
+        "scopeReviewModels": "openai::gpt-5.6-terra",
+        "taskReviewMode": "auto",
+        "totalBudget": 50.0,
+        "perTaskCostUsd": 20.0,
+        "maxRounds": 200,
+        "maxWorkers": 10,
+        "maxActiveSubagents": 6,
+        "effortTask": "medium",
+    },
+}
+_DEFAULT_SPEND_PROFILE = "budget"
+
 _LOCAL_PRESETS: Dict[str, Dict[str, Any]] = {
     "qwen25-7b": {"label": "Qwen2.5-7B Instruct Q3_K_M", "source": "Qwen/Qwen2.5-7B-Instruct-GGUF", "filename": "qwen2.5-7b-instruct-q3_k_m.gguf", "contextLength": 16384, "chatFormat": ""},
     "qwen3-14b": {"label": "Qwen3-14B Instruct Q4_K_M", "source": "Qwen/Qwen3-14B-GGUF", "filename": "Qwen3-14B-Q4_K_M.gguf", "contextLength": 16384, "chatFormat": ""},
     "qwen3-32b": {"label": "Qwen3-32B Instruct Q4_K_M", "source": "Qwen/Qwen3-32B-GGUF", "filename": "Qwen3-32B-Q4_K_M.gguf", "contextLength": 32768, "chatFormat": ""},
 }
 
-_MODEL_SUGGESTIONS = list(dict.fromkeys(("openai::gpt-5.6-terra", "openai::gpt-5.6-sol", "openai::gpt-5.6-luna", "openai/gpt-5.6-terra", "openai/gpt-5.6-sol", "openai/gpt-5.6-luna", "x-ai/grok-4.5", "google/gemini-3.6-flash", "anthropic/claude-sonnet-5", "anthropic/claude-opus-5", "anthropic::claude-sonnet-5", "anthropic::claude-opus-5", "anthropic::claude-opus-4-6", "deepseek/deepseek-v4-pro", "openai-compatible::meta-llama/compatible", "cloudru::zai-org/GLM-4.7", "minimax::MiniMax-M3", "minimax::MiniMax-M2.7")))
+_MODEL_SUGGESTIONS = list(dict.fromkeys(("openai::gpt-5.6-luna", "openai::gpt-5.6-terra", "openai::gpt-5.6-sol", "openai/gpt-5.6-luna", "openai/gpt-5.6-terra", "openai/gpt-5.6-sol", "x-ai/grok-4.5", "google/gemini-3.6-flash", "anthropic/claude-sonnet-5", "anthropic/claude-opus-5", "anthropic::claude-sonnet-5", "anthropic::claude-opus-5", "anthropic::claude-opus-4-6", "deepseek/deepseek-v4-pro", "openai-compatible::meta-llama/compatible", "cloudru::zai-org/GLM-4.7", "minimax::MiniMax-M3", "minimax::MiniMax-M2.7")))
 
 
 def _string(value: Any) -> str:
@@ -245,6 +291,29 @@ def build_setup_contract(host_mode: str = "desktop") -> dict:
         "runtimeModes": [dict(item) for item in _RUNTIME_MODES],
         "localRoutingModes": [dict(item) for item in _LOCAL_ROUTING_MODES],
         "budgetFields": [dict(item) for item in _BUDGET_FIELDS],
+        "spendProfiles": {
+            key: {
+                "label": spec["label"],
+                "tone": spec["tone"],
+                "copy": spec["copy"],
+                "className": spec.get("className", ""),
+                "runtimeMode": spec["runtimeMode"],
+                "contextMode": spec["contextMode"],
+                "reviewEnforcement": spec["reviewEnforcement"],
+                "reviewModels": spec["reviewModels"],
+                "scopeReviewModels": spec["scopeReviewModels"],
+                "taskReviewMode": spec["taskReviewMode"],
+                "totalBudget": spec["totalBudget"],
+                "perTaskCostUsd": spec["perTaskCostUsd"],
+                "maxRounds": spec["maxRounds"],
+                "maxWorkers": spec["maxWorkers"],
+                "maxActiveSubagents": spec["maxActiveSubagents"],
+                "effortTask": spec["effortTask"],
+                "models": dict(spec["models"]),
+            }
+            for key, spec in _SPEND_PROFILES.items()
+        },
+        "defaultSpendProfile": _DEFAULT_SPEND_PROFILE,
     }
 
 
@@ -273,8 +342,10 @@ def build_initial_setup_state(settings: dict, host_mode: str = "desktop") -> dic
         budget_state[field["stateKey"]] = float(field["default"] if error or value is None else value)
     state = {
         "providerProfile": profile,
+        "spendProfile": _DEFAULT_SPEND_PROFILE,
         "reviewEnforcement": _string(settings.get("OUROBOROS_REVIEW_ENFORCEMENT")) or str(SETTINGS_DEFAULTS["OUROBOROS_REVIEW_ENFORCEMENT"]),
         "runtimeMode": _string(settings.get("OUROBOROS_RUNTIME_MODE")) or str(SETTINGS_DEFAULTS["OUROBOROS_RUNTIME_MODE"]),
+        "contextMode": _string(settings.get("OUROBOROS_CONTEXT_MODE")) or str(SETTINGS_DEFAULTS["OUROBOROS_CONTEXT_MODE"]),
         "skillsRepoPath": _string(settings.get("OUROBOROS_SKILLS_REPO_PATH")),
         "localPreset": local_preset,
         "localSource": local_source,
@@ -359,6 +430,14 @@ def validate_setup_payload(data: dict, current_settings: dict) -> Tuple[dict, st
     if runtime_mode not in VALID_RUNTIME_MODES:
         return {}, f"Choose a runtime mode from {sorted(VALID_RUNTIME_MODES)}."
 
+    context_mode = (
+        _string(data.get("OUROBOROS_CONTEXT_MODE")).lower()
+        or _string(current_settings.get("OUROBOROS_CONTEXT_MODE"))
+        or str(SETTINGS_DEFAULTS["OUROBOROS_CONTEXT_MODE"])
+    )
+    if context_mode not in VALID_CONTEXT_MODES:
+        return {}, f"Choose a context mode from {sorted(VALID_CONTEXT_MODES)}."
+
     models = {slot["settingKey"]: _string(data.get(slot["settingKey"])) for slot in _MODEL_SLOTS}
     # Role-model (v6.39): only Main is required. Heavy/Light/Consciousness fall back to
     # Main when empty, and Fallbacks carries a resilience default (empty = no cross-model
@@ -385,6 +464,36 @@ def validate_setup_payload(data: dict, current_settings: dict) -> Tuple[dict, st
     if has_local and not has_remote and not any(use_local):
         return {}, "Local-only setups must route at least one model to the local runtime."
 
+    review_models = _string(data.get("OUROBOROS_REVIEW_MODELS")) or str(SETTINGS_DEFAULTS["OUROBOROS_REVIEW_MODELS"])
+    scope_review_models = (
+        _string(data.get("OUROBOROS_SCOPE_REVIEW_MODELS"))
+        or _string(data.get("OUROBOROS_SCOPE_REVIEW_MODEL"))
+        or str(SETTINGS_DEFAULTS["OUROBOROS_SCOPE_REVIEW_MODELS"])
+    )
+    task_review_mode = _string(data.get("OUROBOROS_TASK_REVIEW_MODE")) or str(SETTINGS_DEFAULTS["OUROBOROS_TASK_REVIEW_MODE"])
+    if task_review_mode not in {"off", "auto", "required"}:
+        return {}, "Choose task review mode from off, auto, or required."
+
+    def _optional_int(key: str, default_key: str) -> int:
+        raw = data.get(key)
+        if raw in (None, ""):
+            return int(SETTINGS_DEFAULTS[default_key])
+        return int(raw)
+
+    try:
+        max_rounds = _optional_int("OUROBOROS_MAX_ROUNDS", "OUROBOROS_MAX_ROUNDS")
+        max_workers = _optional_int("OUROBOROS_MAX_WORKERS", "OUROBOROS_MAX_WORKERS")
+        max_subagents = _optional_int(
+            "OUROBOROS_MAX_ACTIVE_SUBAGENTS_PER_ROOT",
+            "OUROBOROS_MAX_ACTIVE_SUBAGENTS_PER_ROOT",
+        )
+    except (TypeError, ValueError):
+        return {}, "Max rounds, workers, and subagent caps must be integers."
+
+    effort_task = _string(data.get("OUROBOROS_EFFORT_TASK")) or str(SETTINGS_DEFAULTS["OUROBOROS_EFFORT_TASK"])
+    if effort_task not in {"none", "low", "medium", "high"}:
+        return {}, "Choose task effort from none, low, medium, or high."
+
     prepared = dict(current_settings)
     prepared.update(models)
     prepared.update(keys)
@@ -392,6 +501,15 @@ def validate_setup_payload(data: dict, current_settings: dict) -> Tuple[dict, st
     prepared.update({
         "OUROBOROS_REVIEW_ENFORCEMENT": review_enforcement,
         "OUROBOROS_RUNTIME_MODE": runtime_mode,
+        "OUROBOROS_CONTEXT_MODE": context_mode,
+        "OUROBOROS_REVIEW_MODELS": review_models,
+        "OUROBOROS_SCOPE_REVIEW_MODELS": scope_review_models,
+        "OUROBOROS_SCOPE_REVIEW_MODEL": scope_review_models.split(",")[0].strip(),
+        "OUROBOROS_TASK_REVIEW_MODE": task_review_mode,
+        "OUROBOROS_MAX_ROUNDS": max_rounds,
+        "OUROBOROS_MAX_WORKERS": max_workers,
+        "OUROBOROS_MAX_ACTIVE_SUBAGENTS_PER_ROOT": max_subagents,
+        "OUROBOROS_EFFORT_TASK": effort_task,
         "OUROBOROS_SKILLS_REPO_PATH": _string(data.get("OUROBOROS_SKILLS_REPO_PATH")),
         "LOCAL_MODEL_SOURCE": local_source if has_local else "",
         "LOCAL_MODEL_FILENAME": local_filename if has_local else "",

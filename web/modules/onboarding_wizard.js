@@ -23,6 +23,8 @@
         const RUNTIME_MODES = SETUP_CONTRACT.runtimeModes || [];
         const LOCAL_ROUTING_MODES = SETUP_CONTRACT.localRoutingModes || [];
         const BUDGET_FIELDS = SETUP_CONTRACT.budgetFields || [];
+        const SPEND_PROFILES = SETUP_CONTRACT.spendProfiles || {};
+        const DEFAULT_SPEND_PROFILE = SETUP_CONTRACT.defaultSpendProfile || 'budget';
         const LOCAL_FIELDS = [
             ['local-source', 'localSource', 'Model Source', 'Qwen/Qwen2.5-7B-Instruct-GGUF or /absolute/path/model.gguf', 'Use either a HuggingFace repo ID or a local absolute GGUF path.', 'field field-full'],
             ['local-filename', 'localFilename', 'GGUF Filename', 'qwen2.5-7b-instruct-q3_k_m.gguf', 'Required only for HuggingFace repo IDs. Leave empty when the source is a direct filesystem path.', 'field field-full'],
@@ -504,10 +506,13 @@
     }
 
     function summaryRows() {
+        const spend = SPEND_PROFILES[state.spendProfile] || SPEND_PROFILES[DEFAULT_SPEND_PROFILE] || {};
         const rows = [
             ['Detected setup', profileLabel(activeProviderProfile())],
+            ['Spend profile', spend.label || (state.spendProfile || DEFAULT_SPEND_PROFILE)],
             ['Review mode', reviewLabel(state.reviewEnforcement)],
             ['Runtime mode', runtimeModeLabel(state.runtimeMode)],
+            ['Context mode', trim(state.contextMode) || 'low'],
             ['Total budget', formatUsd(state.totalBudget)],
             ['Per-task soft threshold', formatUsd(state.perTaskCostUsd)],
             ['Main', trim(state.mainModel)],
@@ -728,7 +733,35 @@
         `;
     }
 
+    function applySpendProfile(profileId, forceModels) {
+        const profile = SPEND_PROFILES[profileId];
+        if (!profile) return;
+        state.spendProfile = profileId;
+        state.runtimeMode = profile.runtimeMode || state.runtimeMode;
+        state.contextMode = profile.contextMode || state.contextMode || 'low';
+        state.reviewEnforcement = profile.reviewEnforcement || state.reviewEnforcement;
+        state.reviewModels = profile.reviewModels || state.reviewModels;
+        state.scopeReviewModels = profile.scopeReviewModels || state.scopeReviewModels;
+        state.taskReviewMode = profile.taskReviewMode || state.taskReviewMode;
+        state.totalBudget = profile.totalBudget;
+        state.perTaskCostUsd = profile.perTaskCostUsd;
+        state.maxRounds = profile.maxRounds;
+        state.maxWorkers = profile.maxWorkers;
+        state.maxActiveSubagents = profile.maxActiveSubagents;
+        state.effortTask = profile.effortTask;
+        if (forceModels || !state.modelsDirty) {
+            const models = profile.models || {};
+            state.mainModel = models.main || state.mainModel;
+            state.heavyModel = models.heavy ?? state.heavyModel;
+            state.lightModel = models.light || state.lightModel;
+            state.fallbackModel = models.fallback || state.fallbackModel;
+            state.modelsDirty = false;
+        }
+    }
+
         function renderBudgetStep() {
+            const spendEntries = Object.entries(SPEND_PROFILES);
+            const activeSpend = trim(state.spendProfile) || DEFAULT_SPEND_PROFILE;
             return `
             <div class="step-header">
                 <div>
@@ -736,6 +769,17 @@
                     <p class="step-copy">${escapeHtml(STEP_META.budget.copy)}</p>
                 </div>
                 </div>
+                ${spendEntries.length ? `
+                <div class="wizard-choice-grid two" style="margin-bottom: 1rem;">
+                    ${spendEntries.map(([id, profile]) => `
+                        <button type="button" class="wizard-choice ${escapeHtml(profile.className || '')} ${activeSpend === id ? 'active' : ''}" data-spend-profile="${escapeHtml(id)}">
+                            <span class="tone">${escapeHtml(profile.tone || '')}</span>
+                            <h3>${escapeHtml(profile.label || id)}</h3>
+                            <p>${escapeHtml(profile.copy || '')}</p>
+                        </button>
+                    `).join('')}
+                </div>
+                ` : ''}
                 <div class="grid two">
                     ${BUDGET_FIELDS.map((field) => `
                         <div class="panel-card">
@@ -1179,6 +1223,13 @@
     }
 
         function bindBudgetStep() {
+            root.querySelectorAll('[data-spend-profile]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    applySpendProfile(button.getAttribute('data-spend-profile'), true);
+                    markStepEdited();
+                    render();
+                });
+            });
             BUDGET_FIELDS.forEach((field) => {
                 const input = document.getElementById(field.inputId);
                 if (input) input.addEventListener('input', () => { state[field.stateKey] = input.value; markStepEdited(); });
@@ -1188,7 +1239,7 @@
 
     async function saveWizardPayload(payload) {
         if (HOST_MODE === 'web') {
-            const runtimeMode = trim(state.runtimeMode) || 'advanced';
+            const runtimeMode = trim(state.runtimeMode) || 'light';
             await apiRequest('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1239,6 +1290,14 @@
                 ...Object.fromEntries(PROVIDER_FIELDS.map((field) => [field.settingKey, trim(state[field.stateKey])])),
                 ...Object.fromEntries(BUDGET_FIELDS.map((field) => [field.settingKey, Number(state[field.stateKey] || 0)])),
                 OUROBOROS_REVIEW_ENFORCEMENT: trim(state.reviewEnforcement) || 'advisory',
+                OUROBOROS_CONTEXT_MODE: trim(state.contextMode) || 'low',
+                OUROBOROS_REVIEW_MODELS: trim(state.reviewModels) || '',
+                OUROBOROS_SCOPE_REVIEW_MODELS: trim(state.scopeReviewModels) || '',
+                OUROBOROS_TASK_REVIEW_MODE: trim(state.taskReviewMode) || 'off',
+                OUROBOROS_MAX_ROUNDS: Number(state.maxRounds || 50),
+                OUROBOROS_MAX_WORKERS: Number(state.maxWorkers || 3),
+                OUROBOROS_MAX_ACTIVE_SUBAGENTS_PER_ROOT: Number(state.maxActiveSubagents || 2),
+                OUROBOROS_EFFORT_TASK: trim(state.effortTask) || 'low',
                 OUROBOROS_SKILLS_REPO_PATH: trim(state.skillsRepoPath),
                 LOCAL_MODEL_SOURCE: trim(state.localSource),
             LOCAL_MODEL_FILENAME: trim(state.localFilename),
@@ -1248,7 +1307,7 @@
                 LOCAL_ROUTING_MODE: trim(state.localSource) ? (trim(state.localRoutingMode) || 'cloud') : 'cloud',
                 ...Object.fromEntries(MODEL_SLOTS.map((slot) => [slot.settingKey, trim(state[slot.stateKey])])),
             };
-        payload.OUROBOROS_RUNTIME_MODE = trim(state.runtimeMode) || 'advanced';
+        payload.OUROBOROS_RUNTIME_MODE = trim(state.runtimeMode) || 'light';
         try {
             await saveWizardPayload(payload);
         } catch (error) {
@@ -1273,5 +1332,9 @@
     }
 
     applyModelDefaults(false);
+    if (!trim(state.spendProfile)) state.spendProfile = DEFAULT_SPEND_PROFILE;
+    if (!trim(state.contextMode) || !trim(state.reviewModels)) {
+        applySpendProfile(state.spendProfile || DEFAULT_SPEND_PROFILE, false);
+    }
     render();
 })();

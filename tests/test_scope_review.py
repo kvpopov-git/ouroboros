@@ -2405,7 +2405,7 @@ def test_default_context_mode_is_max_and_agent_cannot_lower_it(monkeypatch):
     from ouroboros.tools.browser import _blocks_context_mode_self_lowering_js
     from ouroboros.tools.registry import _detect_context_mode_self_lowering
 
-    assert config.SETTINGS_DEFAULTS["OUROBOROS_CONTEXT_MODE"] == "max"
+    assert config.SETTINGS_DEFAULTS["OUROBOROS_CONTEXT_MODE"] == "low"
     monkeypatch.delenv("OUROBOROS_CONTEXT_MODE", raising=False)
     assert config.get_context_mode() == "max"
 

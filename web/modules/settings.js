@@ -26,11 +26,11 @@ const INPUT_FIELDS = [
     ['s-evo-objective', 'OUROBOROS_EVOLUTION_PERSISTENT_OBJECTIVE', ''],
 ];
 const VALUE_FIELDS = [
-    ['s-effort-task', 'OUROBOROS_EFFORT_TASK', 'medium'], ['s-effort-evolution', 'OUROBOROS_EFFORT_EVOLUTION', 'high'], ['s-effort-review', 'OUROBOROS_EFFORT_REVIEW', 'high'],
-    ['s-effort-consciousness', 'OUROBOROS_EFFORT_CONSCIOUSNESS', 'high'], ['s-effort-scope-review', 'OUROBOROS_EFFORT_SCOPE_REVIEW', 'high'], ['s-effort-deep-self-review', 'OUROBOROS_EFFORT_DEEP_SELF_REVIEW', 'high'],
-    ['s-review-enforcement', 'OUROBOROS_REVIEW_ENFORCEMENT', 'advisory'], ['s-task-review-mode', 'OUROBOROS_TASK_REVIEW_MODE', 'auto'], ['s-runtime-mode', 'OUROBOROS_RUNTIME_MODE', 'advanced'],
+    ['s-effort-task', 'OUROBOROS_EFFORT_TASK', 'low'], ['s-effort-evolution', 'OUROBOROS_EFFORT_EVOLUTION', 'medium'], ['s-effort-review', 'OUROBOROS_EFFORT_REVIEW', 'medium'],
+    ['s-effort-consciousness', 'OUROBOROS_EFFORT_CONSCIOUSNESS', 'low'], ['s-effort-scope-review', 'OUROBOROS_EFFORT_SCOPE_REVIEW', 'medium'], ['s-effort-deep-self-review', 'OUROBOROS_EFFORT_DEEP_SELF_REVIEW', 'medium'],
+    ['s-review-enforcement', 'OUROBOROS_REVIEW_ENFORCEMENT', 'advisory'], ['s-task-review-mode', 'OUROBOROS_TASK_REVIEW_MODE', 'off'], ['s-runtime-mode', 'OUROBOROS_RUNTIME_MODE', 'light'],
     ['s-update-channel', 'OUROBOROS_UPDATE_CHANNEL', 'stable'],
-    ['s-context-mode', 'OUROBOROS_CONTEXT_MODE', 'max'], ['s-image-input-mode', 'OUROBOROS_IMAGE_INPUT_MODE', 'auto'],
+    ['s-context-mode', 'OUROBOROS_CONTEXT_MODE', 'low'], ['s-image-input-mode', 'OUROBOROS_IMAGE_INPUT_MODE', 'auto'],
     ['s-safety-mode', 'OUROBOROS_SAFETY_MODE', 'full'],
 ];
 const _SAFETY_MODE_RANK = { full: 2, light: 1, off: 0 };
@@ -268,12 +268,12 @@ function collectSecretValue(id, body) {
 
 // Fallback picker pills mirror config defaults plus useful direct-provider ids.
 const SETTINGS_FALLBACK_MODELS = [
+    'openai::gpt-5.6-luna',
     'openai::gpt-5.6-terra',
     'openai::gpt-5.6-sol',
-    'openai::gpt-5.6-luna',
+    'openai/gpt-5.6-luna',
     'openai/gpt-5.6-terra',
     'openai/gpt-5.6-sol',
-    'openai/gpt-5.6-luna',
     'x-ai/grok-4.5',
     'google/gemini-3.6-flash',
     'anthropic/claude-sonnet-5',

@@ -300,6 +300,7 @@ def test_build_onboarding_html_contains_multistep_markers():
     assert "Choose review mode" in html
     assert "Set your budget" in html
     assert "Local model settings" in html
+    assert "Spend profile" in html or "spendProfiles" in html
     assert "openai::gpt-5.6-terra" in html
     assert "openai::gpt-5.6-luna" in html
     assert "anthropic::claude-sonnet-5" in html

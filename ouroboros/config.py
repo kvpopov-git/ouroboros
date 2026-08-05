@@ -83,15 +83,14 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     "OUROBOROS_NETWORK_PASSWORD": "",
     "OUROBOROS_SERVER_HOST": "127.0.0.1",
     "OUROBOROS_HOST_SERVICE_PORT": 8767,
-    # Fork default (kvpopov-git): OpenAI-direct first. Other providers stay fully
-    # supported — set their keys and/or switch model ids (openai:: / anthropic:: /
-    # openrouter slugs / openai-compatible::). Prefix routes to the matching lane.
-    "OUROBOROS_MODEL": "openai::gpt-5.6-terra",
+    # Fork Budget profile (kvpopov-git): OpenAI-direct + frugal defaults.
+    # Switch to Performance in the onboarding spend preset for terra/sol + max context.
+    "OUROBOROS_MODEL": "openai::gpt-5.6-luna",
     # Worker lanes. Empty means "use OUROBOROS_MODEL" (same shape as consciousness),
     # so the owner sets ONE model by default and optionally overrides a lane. HEAVY is
     # the strong acting/coding lane (mutative first-level subagents); LIGHT is the cheap
     # bulk lane (auto / deep subagents); real cheap default since v6.82.0.
-    "OUROBOROS_MODEL_HEAVY": "openai::gpt-5.6-sol",
+    "OUROBOROS_MODEL_HEAVY": "",
     "OUROBOROS_MODEL_LIGHT": "openai::gpt-5.6-luna",
     "OUROBOROS_MODEL_VISION": "",
     "OUROBOROS_IMAGE_INPUT_MODE": "auto",
@@ -102,10 +101,10 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     # 1-element chain; empty disables cross-model fallback. Resilience slot — keeps a
     # real default, unlike the worker lanes. (Renamed from the singular MODEL_FALLBACK.)
     "OUROBOROS_MODEL_FALLBACKS": "openai::gpt-5.6-luna",
-    "OUROBOROS_MODEL_DEEP_SELF_REVIEW": "openai::gpt-5.6-sol",
+    "OUROBOROS_MODEL_DEEP_SELF_REVIEW": "openai::gpt-5.6-luna",
     "CLAUDE_CODE_MODEL": "opus[1m]",
-    "OUROBOROS_MAX_WORKERS": 10,
-    "OUROBOROS_MAX_ACTIVE_SUBAGENTS_PER_ROOT": 6,
+    "OUROBOROS_MAX_WORKERS": 3,
+    "OUROBOROS_MAX_ACTIVE_SUBAGENTS_PER_ROOT": 2,
     "OUROBOROS_MAX_SUBAGENT_DEPTH": 2,
     # Mutative ("acting") subagents master toggle. Empty = follow runtime mode
     # (ON in advanced/pro, OFF in light); explicit true/false overrides. Owner-
@@ -127,14 +126,14 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     # no longer stops on heartbeat staleness, but custom saved values stay loud.
     "OUROBOROS_PLAN_TASK_SWARM_HEARTBEAT_STALE_SEC": 120,
     "TOTAL_BUDGET": 10.0,
-    "OUROBOROS_PER_TASK_COST_USD": 20.0,
+    "OUROBOROS_PER_TASK_COST_USD": 3.0,
     # cloud.ru catalog prices are RUB per 1M while the budget is USD. No implicit
     # exchange rate: the owner must explicitly configure the divisor.
     "OUROBOROS_RUB_USD_RATE": "",
     # Live-pricing (OpenRouter + cloud.ru catalog) refetch interval; prices/FX drift.
     "OUROBOROS_PRICING_TTL_SEC": 21600,
     # Main-loop round ceiling (was an inline literal in loop.py — hot-reloadable now).
-    "OUROBOROS_MAX_ROUNDS": 200,
+    "OUROBOROS_MAX_ROUNDS": 50,
     # Same-model attempt budget for TRANSIENT provider failure classes
     # (finish_reason=null, 429/5xx/overloaded); floored at the caller's base
     # retry budget. Permanent classes fail fast regardless.
@@ -170,8 +169,8 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     "OUROBOROS_PACING_INTERVAL_SEC": PACING_INTERVAL_DEFAULT_SEC,
     "OUROBOROS_TOOL_TIMEOUT_SEC": 600,
     "OUROBOROS_VISION_CAPTION_TIMEOUT_SEC": 90,
-    "OUROBOROS_BG_MAX_ROUNDS": 10,
-    "OUROBOROS_BG_WAKEUP_MIN": 30,
+    "OUROBOROS_BG_MAX_ROUNDS": 5,
+    "OUROBOROS_BG_WAKEUP_MIN": 1800,
     "OUROBOROS_BG_WAKEUP_MAX": 7200,
     # Post-task self-evolution envelope (V4). Owner-enabled capability whose
     # CONTENT stays LLM-first; default OFF. When enabled, after a qualifying task
@@ -204,10 +203,9 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     # window from a FREE over-window reject; *_CHARS sizes the oversized padding.
     "OUROBOROS_GENERATIVE_PROBE": "1",
     "OUROBOROS_GENERATIVE_PROBE_CHARS": "5000000",
-    # Pre-commit review: comma-separated provider-tagged model list.
-    # OpenAI-only triad (stochastic diversity) for direct-OpenAI-first installs;
-    # owners can replace with a multi-vendor list when OpenRouter/Anthropic/etc. are configured.
-    "OUROBOROS_REVIEW_MODELS": "openai::gpt-5.6-luna,openai::gpt-5.6-terra,openai::gpt-5.6-sol",
+    # Pre-commit review: single cheap reviewer by default (Budget). Performance
+    # spend profile restores a multi-model triad.
+    "OUROBOROS_REVIEW_MODELS": "openai::gpt-5.6-luna",
     # Pre-commit review enforcement: advisory | blocking
     "OUROBOROS_REVIEW_ENFORCEMENT": "advisory",
     # Auto-grant reviewed-skill requests by default; grants stay bound to the
@@ -222,14 +220,10 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     # task still heartbeats, the restart waits up to this many seconds before
     # proceeding fail-closed (0 = no drain, restart immediately).
     "OUROBOROS_RESTART_DRAIN_MAX_SEC": 120,
-    # Runtime mode: light | advanced | pro; pro still requires review gates.
-    "OUROBOROS_RUNTIME_MODE": "advanced",
-    # Context mode: low | max. Owner-only working-context size profile. max =
-    # full always-on docs + current memory granularity; low = ARCHITECTURE as a
-    # navigation map + deeper memory consolidation, sized for ~200k / local models.
-    # Cognitive-horizon knob (BIBLE P1): the agent cannot lower it (owner-only),
-    # and it never changes model / reasoning-effort / output-token budgets.
-    "OUROBOROS_CONTEXT_MODE": "max",
+    # Runtime mode: light | advanced | pro; Budget fork default is light.
+    "OUROBOROS_RUNTIME_MODE": "light",
+    # Context mode: low | max. Budget fork default is low (navigation-map docs).
+    "OUROBOROS_CONTEXT_MODE": "low",
     # Derived system state, never an owner choice (see get_owner_context_mode).
     # TRI-STATE, fail-CLOSED: "" is UNKNOWN, not "the owner chose low". Only an explicit
     # "false" (written by api_owner_context_mode alone) makes a stored `low` an owner
@@ -244,13 +238,13 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     "MCP_SERVERS": [],
     "MCP_TOOL_TIMEOUT_SEC": 60,
     # Scope review: one or more reviewer slots; enforcement follows OUROBOROS_REVIEW_ENFORCEMENT.
-    "OUROBOROS_SCOPE_REVIEW_MODELS": "openai::gpt-5.6-terra",
-    "OUROBOROS_SCOPE_REVIEW_MODEL": "openai::gpt-5.6-terra",
+    "OUROBOROS_SCOPE_REVIEW_MODELS": "openai::gpt-5.6-luna",
+    "OUROBOROS_SCOPE_REVIEW_MODEL": "openai::gpt-5.6-luna",
     # DEPRECATED, enforcement-inert (v6.80.0): stored, owner-only (dedicated audited
     # endpoint), but NOTHING consults it — whether the BIBLE P3 blocking scope review
     # applies follows owner-only OUROBOROS_CONTEXT_MODE. Degraded opt-in key: removed.
     "OUROBOROS_SCOPE_REVIEW_FLOOR": "blocking_1m",
-    "OUROBOROS_TASK_REVIEW_MODE": "auto",
+    "OUROBOROS_TASK_REVIEW_MODE": "off",
     # LLM safety-supervisor coverage (owner-only, like runtime/context mode):
     #   full (shipped default; fail-closed fallbacks land here; a FRESH wizard
     #                     authors "light") — LLM check on POLICY_CHECK + cond. shell.
@@ -285,12 +279,12 @@ SETTINGS_DEFAULTS = {**UPDATE_SETTINGS_DEFAULTS,
     "OUROBOROS_ACCEPTANCE_MAX_IMPROVEMENT_PASSES": 1,
     "OUROBOROS_ACCEPTANCE_RESERVE_PCT": 5,
     # Reasoning effort per task type: none | low | medium | high
-    "OUROBOROS_EFFORT_TASK": "medium",
-    "OUROBOROS_EFFORT_EVOLUTION": "high",
-    "OUROBOROS_EFFORT_REVIEW": "high",
-    "OUROBOROS_EFFORT_SCOPE_REVIEW": "high",
-    "OUROBOROS_EFFORT_DEEP_SELF_REVIEW": "high",
-    "OUROBOROS_EFFORT_CONSCIOUSNESS": "high",
+    "OUROBOROS_EFFORT_TASK": "low",
+    "OUROBOROS_EFFORT_EVOLUTION": "medium",
+    "OUROBOROS_EFFORT_REVIEW": "medium",
+    "OUROBOROS_EFFORT_SCOPE_REVIEW": "medium",
+    "OUROBOROS_EFFORT_DEEP_SELF_REVIEW": "medium",
+    "OUROBOROS_EFFORT_CONSCIOUSNESS": "low",
     "OUROBOROS_RETURN_REASONING": True,
     "OUROBOROS_REASONING_SUMMARY": "auto",
     "GITHUB_TOKEN": "",

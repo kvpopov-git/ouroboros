@@ -4117,11 +4117,11 @@ class LLMClient:
 
     def default_model(self) -> str:
         """Return the single default model from env. LLM switches via tool if needed."""
-        return os.environ.get("OUROBOROS_MODEL", "openai::gpt-5.6-terra")
+        return os.environ.get("OUROBOROS_MODEL", "openai::gpt-5.6-luna")
 
     def available_models(self) -> List[str]:
         """Return list of available models from env (for switch_model tool schema)."""
-        main = os.environ.get("OUROBOROS_MODEL", "openai::gpt-5.6-terra")
+        main = os.environ.get("OUROBOROS_MODEL", "openai::gpt-5.6-luna")
         heavy = os.environ.get("OUROBOROS_MODEL_HEAVY", "")
         light = os.environ.get("OUROBOROS_MODEL_LIGHT", "")
         models = [main]
